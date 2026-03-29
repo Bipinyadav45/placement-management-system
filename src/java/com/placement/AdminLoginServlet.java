@@ -85,7 +85,7 @@ public class AdminLoginServlet extends HttpServlet {
             session.setAttribute("admin", username);
 
             // Login success -> Dashboard
-            response.sendRedirect("AdminHome.jsp");
+            response.sendRedirect("studentlist.jsp");
 
         } else {
 

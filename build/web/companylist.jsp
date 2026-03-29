@@ -114,7 +114,6 @@ PLACEMENT PORTAL
 <!-- SIDEBAR -->
 
 <div class="sidebar">
-<a href="AdminHome.jsp">HOME</a>
 <a href="studentlist.jsp">STUDENTS</a>
 <a href="companylist.jsp" class="active">COMPANIES</a>
 <a href="placedstudents.jsp">PLACED STUDENTS</a>

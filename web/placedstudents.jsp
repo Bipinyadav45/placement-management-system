@@ -89,7 +89,6 @@ th{
 
 <!-- SIDEBAR -->
 <div class="sidebar">
-  <a href="AdminHome.jsp">HOME</a>
   <a href="studentlist.jsp">STUDENTS</a>
   <a href="companylist.jsp">COMPANIES</a>
   <a href="placedstudents.jsp" class="active">PLACED STUDENTS</a>
