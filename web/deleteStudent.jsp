@@ -1,7 +1,5 @@
 <%-- 
     Document   : deleteStudent
-    Created on : 30 Jan 2026, 9:25:00 pm
-    Author     : defaultuser0
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -9,20 +7,46 @@
 <%
 String prn = request.getParameter("prn");
 
+Connection con = null;
+PreparedStatement ps = null;
+
 try{
-  Class.forName("com.mysql.cj.jdbc.Driver");
-  Connection con = DriverManager.getConnection(
-      "jdbc:mysql://localhost:3306/student_db","root","spdt");
+    Class.forName("com.mysql.cj.jdbc.Driver");
 
-  PreparedStatement ps = con.prepareStatement(
-      "DELETE FROM student WHERE prn=?");
-  ps.setString(1, prn);
+    // ENV variables (Railway)
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASSWORD");
 
-  ps.executeUpdate();
+    String url;
 
-  response.sendRedirect("studentlist.jsp");
+    // 🔥 Local fallback
+    if(host == null){
+        url = "jdbc:mysql://localhost:3306/student_db";
+        user = "root";
+        pass = "spdt";
+    } else {
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
+
+    con = DriverManager.getConnection(url, user, pass);
+
+    ps = con.prepareStatement("DELETE FROM student WHERE prn=?");
+    ps.setString(1, prn);
+
+    ps.executeUpdate();
+
+    // Redirect after delete
+    response.sendRedirect("studentlist.jsp");
 
 }catch(Exception e){
-  out.println(e);
+    out.println("Error: " + e);
+} finally {
+    try{
+        if(ps != null) ps.close();
+        if(con != null) con.close();
+    } catch(Exception e){}
 }
 %>

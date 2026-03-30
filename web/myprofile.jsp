@@ -119,48 +119,69 @@ button:hover{
 
 <%
     // Session check
-    String studentId = (String) session.getAttribute("student_id");
+String studentId = (String) session.getAttribute("student_id");
 
-    // Initialize variables
-    String fname="", mname="", lname="", email="", gender="", address="";
-    String marks10="", marks12="", diploma="", graduation="", branch="", dob="", phone="", skills="";
-    String resumePath="";
+// Initialize variables
+String fname="", mname="", lname="", email="", gender="", address="";
+String marks10="", marks12="", diploma="", graduation="", branch="", dob="", phone="", skills="";
+String resumePath="";
 
-    if(studentId != null){
-        Connection con = null;
-        PreparedStatement ps = null;
-        ResultSet rs = null;
-        try{
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/myprofile_db","root","spdt");
-            ps = con.prepareStatement("SELECT * FROM student_profile WHERE id=?");
-            ps.setString(1, studentId);
-            rs = ps.executeQuery();
-            if(rs.next()){
-                fname = rs.getString("fname");
-                mname = rs.getString("mname");
-                lname = rs.getString("lname");
-                email = rs.getString("email");
-                gender = rs.getString("gender");
-                address = rs.getString("address");
-                marks10 = rs.getString("marks10");
-                marks12 = rs.getString("marks12");
-                diploma = rs.getString("diploma");
-                graduation = rs.getString("graduation");
-                branch = rs.getString("branch");
-                dob = rs.getString("dob");
-                phone = rs.getString("phone");
-                skills = rs.getString("skills");
-                resumePath = rs.getString("resume_path"); // Optional: show uploaded file
-            }
-        }catch(Exception e){
-            out.println("Error: "+e);
-        }finally{
-            try{ if(rs!=null) rs.close(); } catch(Exception e){}
-            try{ if(ps!=null) ps.close(); } catch(Exception e){}
-            try{ if(con!=null) con.close(); } catch(Exception e){}
+if(studentId != null){
+    Connection con = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
+    try{
+        Class.forName("com.mysql.cj.jdbc.Driver");
+
+        // ENV variables (Railway)
+        String host = System.getenv("DB_HOST");
+        String port = System.getenv("DB_PORT");
+        String db   = System.getenv("DB_NAME");
+        String user = System.getenv("DB_USER");
+        String pass = System.getenv("DB_PASSWORD");
+
+        String url;
+
+        // 🔥 Local fallback
+        if(host == null){
+            url = "jdbc:mysql://localhost:3306/myprofile_db";
+            user = "root";
+            pass = "spdt";
+        } else {
+            url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
         }
+
+        con = DriverManager.getConnection(url, user, pass);
+
+        ps = con.prepareStatement("SELECT * FROM student_profile WHERE id=?");
+        ps.setString(1, studentId);
+        rs = ps.executeQuery();
+
+        if(rs.next()){
+            fname = rs.getString("fname");
+            mname = rs.getString("mname");
+            lname = rs.getString("lname");
+            email = rs.getString("email");
+            gender = rs.getString("gender");
+            address = rs.getString("address");
+            marks10 = rs.getString("marks10");
+            marks12 = rs.getString("marks12");
+            diploma = rs.getString("diploma");
+            graduation = rs.getString("graduation");
+            branch = rs.getString("branch");
+            dob = rs.getString("dob");
+            phone = rs.getString("phone");
+            skills = rs.getString("skills");
+            resumePath = rs.getString("resume_path"); // Optional: show uploaded file
+        }
+    }catch(Exception e){
+        out.println("Error: "+e);
+    }finally{
+        try{ if(rs!=null) rs.close(); } catch(Exception e){}
+        try{ if(ps!=null) ps.close(); } catch(Exception e){}
+        try{ if(con!=null) con.close(); } catch(Exception e){}
     }
+}
 %>
 
 <!-- Sidebar -->

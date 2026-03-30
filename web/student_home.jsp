@@ -14,8 +14,40 @@
     String firstName = "Student"; // default
     try {
         Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection conProfile = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/myprofile_db","root","");
+
+// ======== Profile DB ========
+String host = System.getenv("DB_HOST");
+String port = System.getenv("DB_PORT");
+String db   = System.getenv("DB_NAME_PROFILE");  // env variable for profile DB
+String user = System.getenv("DB_USER");
+String pass = System.getenv("DB_PASS");
+
+String urlProfile;
+if(host==null){  // local fallback
+    urlProfile = "jdbc:mysql://localhost:3306/myprofile_db";
+    user = "root";
+    pass = "";
+} else {
+    urlProfile = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+}
+
+Connection conProfile = DriverManager.getConnection(urlProfile, user, pass);
+
+// ======== Company DB ========
+host = System.getenv("DB_HOST");
+port = System.getenv("DB_PORT");
+db   = System.getenv("DB_NAME_COMPANY");  // env variable for company DB
+
+String urlCompany;
+if(host==null){
+    urlCompany = "jdbc:mysql://localhost:3306/company_db";
+    user = "root";
+    pass = "spdt";
+} else {
+    urlCompany = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+}
+
+Connection conCompany = DriverManager.getConnection(urlCompany, user, pass);
         PreparedStatement ps = conProfile.prepareStatement(
                 "SELECT first_name FROM students WHERE username=?");
         ps.setString(1, username);

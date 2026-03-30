@@ -40,9 +40,28 @@ if(filePart != null && filePart.getSize() > 0){
 
 try {
     Class.forName("com.mysql.cj.jdbc.Driver");
-    Connection con = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/myprofile_db","root","spdt");
+  Class.forName("com.mysql.cj.jdbc.Driver");
 
+// ENV variables (Railway)
+String host = System.getenv("DB_HOST");
+String port = System.getenv("DB_PORT");
+String db   = System.getenv("DB_NAME");
+String user = System.getenv("DB_USER");
+String pass = System.getenv("DB_PASSWORD");
+
+String url;
+
+// Local fallback
+if(host == null){
+    url = "jdbc:mysql://localhost:3306/myprofile_db";
+    user = "root";
+    pass = "spdt";
+} else {
+    url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+}
+
+// Connection
+Connection con = DriverManager.getConnection(url, user, pass);
     // 1. Check if record exists
     PreparedStatement check = con.prepareStatement("SELECT * FROM student_profile WHERE id=?");
     check.setString(1, studentId);

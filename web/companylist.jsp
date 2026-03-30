@@ -1,7 +1,5 @@
 <%-- 
     Document   : companylist
-    Created on : 31 Jan 2026, 9:50:23 am
-    Author     : defaultuser0
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -20,7 +18,6 @@ font-family: Arial, sans-serif;
 background:#f5f6fa;
 }
 
-/* ===== HEADER (same as student page) ===== */
 .topbar{
 background:#5c6bc0;
 color:white;
@@ -32,7 +29,6 @@ font-size:22px;
 font-weight:bold;
 }
 
-/* ===== SIDEBAR ===== */
 .sidebar{
 width:220px;
 height:100vh;
@@ -56,7 +52,6 @@ background:#2d2d44;
 color:white;
 }
 
-/* ===== CONTENT ===== */
 .content{
 margin-left:240px;
 padding:30px;
@@ -105,13 +100,9 @@ text-decoration:none;
 
 <body>
 
-<!-- HEADER -->
-
 <div class="topbar">
 PLACEMENT PORTAL
 </div>
-
-<!-- SIDEBAR -->
 
 <div class="sidebar">
 <a href="studentlist.jsp">STUDENTS</a>
@@ -119,8 +110,6 @@ PLACEMENT PORTAL
 <a href="placedstudents.jsp">PLACED STUDENTS</a>
 <a href="home.jsp">LOGOUT</a>
 </div>
-
-<!-- CONTENT -->
 
 <div class="content">
 
@@ -146,18 +135,32 @@ PreparedStatement ps = null;
 ResultSet rs = null;
 
 try{
-Class.forName("com.mysql.cj.jdbc.Driver");
+    Class.forName("com.mysql.cj.jdbc.Driver");
 
-con = DriverManager.getConnection(
-"jdbc:mysql://localhost:3306/pms_db",
-"root",
-"spdt"
-);
+    // ENV variables (Railway)
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASSWORD");
 
-ps = con.prepareStatement("SELECT * FROM company");
-rs = ps.executeQuery();
+    String url;
 
-while(rs.next()){
+    // 🔥 अगर ENV नहीं है → LOCAL DB use करो
+    if(host == null){
+        url = "jdbc:mysql://localhost:3306/pms_db";
+        user = "root";
+        pass = "spdt";
+    } else {
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
+
+    con = DriverManager.getConnection(url, user, pass);
+
+    ps = con.prepareStatement("SELECT * FROM company");
+    rs = ps.executeQuery();
+
+    while(rs.next()){
 %>
 
 <tr>
@@ -172,15 +175,21 @@ while(rs.next()){
 <a class="action" href="deleteCompany.jsp?cid=<%=rs.getInt("cid")%>"
 onclick="return confirm('Are you sure?')">Delete</a>
 </td>
-
 </tr>
 
 <%
-}
+    }
 
 }catch(Exception e){
-out.println(e);
+    out.println("<p style='color:red;'>Error: "+e.getMessage()+"</p>");
 }
+
+// Close resources
+try{
+    if(rs != null) rs.close();
+    if(ps != null) ps.close();
+    if(con != null) con.close();
+}catch(Exception e){}
 %>
 
 </table>

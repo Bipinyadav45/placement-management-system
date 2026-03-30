@@ -1,7 +1,5 @@
 <%-- 
     Document   : editCompany
-    Created on : 1 Feb 2026, 4:03:32 pm
-    Author     : defaultuser0
 --%>
 
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
@@ -16,8 +14,26 @@ ResultSet rs = null;
 
 try {
     Class.forName("com.mysql.cj.jdbc.Driver");
-    con = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/pms_db","root","spdt");
+
+    // ENV variables (Railway)
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASSWORD");
+
+    String url;
+
+    // 🔥 Local fallback
+    if(host == null){
+        url = "jdbc:mysql://localhost:3306/pms_db";
+        user = "root";
+        pass = "spdt";
+    } else {
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
+
+    con = DriverManager.getConnection(url, user, pass);
 
     ps = con.prepareStatement("SELECT * FROM company WHERE cid=?");
     ps.setString(1, cid);
@@ -55,7 +71,7 @@ try {
 <%
     }
 } catch (Exception e) {
-    out.println(e);
+    out.println("Error: " + e);
 } finally {
     try {
         if (rs != null) rs.close();

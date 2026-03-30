@@ -20,8 +20,25 @@ PreparedStatement ps = null;
 try {
     Class.forName("com.mysql.cj.jdbc.Driver");
 
-    con = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/pms_db","root","spdt");
+    // ==========================
+    // Dynamic DB connection
+    // ==========================
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASS");
+
+    String url;
+    if(host == null){ // Local fallback
+        url = "jdbc:mysql://localhost:3306/pms_db";
+        user = "root";
+        pass = "spdt";
+    } else { // Online deploy
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
+
+    con = DriverManager.getConnection(url, user, pass);
 
     ps = con.prepareStatement(
         "UPDATE company SET cname=?, role=?, package=?, criteria=? WHERE cid=?"
@@ -40,5 +57,8 @@ try {
 
 } catch (Exception e) {
     out.println("Error: " + e);
+} finally {
+    try{ if(ps != null) ps.close(); } catch(Exception e){}
+    try{ if(con != null) con.close(); } catch(Exception e){}
 }
 %>

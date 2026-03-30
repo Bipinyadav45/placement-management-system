@@ -146,13 +146,35 @@ td{
             </tr>
 
 <%
+Connection con = null;
+Statement st = null;
+ResultSet rs = null;
+
 try{
     Class.forName("com.mysql.cj.jdbc.Driver");
-    Connection con = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/myprofile_db","root","spdt");
 
-    Statement st = con.createStatement();
-    ResultSet rs = st.executeQuery("SELECT * FROM student_profile");
+    // ENV variables (Railway)
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASSWORD");
+
+    String url;
+
+    // 🔥 Local fallback
+    if(host == null){
+        url = "jdbc:mysql://localhost:3306/myprofile_db";
+        user = "root";
+        pass = "spdt";
+    } else {
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
+
+    con = DriverManager.getConnection(url, user, pass);
+
+    st = con.createStatement();
+    rs = st.executeQuery("SELECT * FROM student_profile");
 
     while(rs.next()){
 %>

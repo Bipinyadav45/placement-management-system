@@ -15,16 +15,32 @@ public class DBConnection {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/job_db",
-                "root",
-                "spdt"
-            );
+        // step 2: check online or local
+        String host = System.getenv("DB_HOST");
 
-        } catch (Exception e) {
-            e.printStackTrace();
+        if (host != null) {
+            // 🌐 Online (Railway)
+            String port = System.getenv("DB_PORT");
+            String db = System.getenv("DB_NAME");
+            String user = System.getenv("DB_USER");
+            String pass = System.getenv("DB_PASS");
+
+            String url = "jdbc:mysql://" + host + ":" + port + "/" + db;
+            con = DriverManager.getConnection(url, user, pass);
+
+        } else {
+            // 💻 Localhost
+            String url = "jdbc:mysql://localhost:3306/job_db";
+            String user = "root";
+            String pass = "spdt";
+
+            con = DriverManager.getConnection(url, user, pass);
         }
 
-        return con;
+    }catch(Exception e){
+        e.printStackTrace();
     }
+
+    return con;
+}
 }

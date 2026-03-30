@@ -7,97 +7,83 @@
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@page import="java.sql.*"%>
 <%
-
-Connection con=null;
-PreparedStatement ps=null;
-ResultSet rs=null;
+Connection con = null;
+PreparedStatement ps = null;
+ResultSet rs = null;
 
 int correct=0;
 int total=0;
 
 /* GET TEST ID */
-
 String tid=request.getParameter("test_Id");
-
-if(tid==null){
-tid=request.getParameter("id");
-}
+if(tid==null) tid=request.getParameter("id");
 
 int testId=1;
-
 if(tid!=null && !tid.equals("")){
-testId=Integer.parseInt(tid);
+    testId=Integer.parseInt(tid);
 }
 
 /* DATABASE CONNECTION */
-
 Class.forName("com.mysql.cj.jdbc.Driver");
 
-con=DriverManager.getConnection(
-"jdbc:mysql://localhost:3306/test_db",
-"root",
-"spdt"
-);
+// ENV variables (Railway)
+String host = System.getenv("DB_HOST");
+String port = System.getenv("DB_PORT");
+String db   = System.getenv("DB_NAME");
+String user = System.getenv("DB_USER");
+String pass = System.getenv("DB_PASSWORD");
 
-/* FIRST QUERY : CALCULATE SCORE */
+String url;
 
-ps=con.prepareStatement(
-"SELECT * FROM questions WHERE test_id=? ORDER BY id LIMIT 30"
-);
-
-ps.setInt(1,testId);
-
-rs=ps.executeQuery();
-
-int i=0;
-
-while(rs.next()){
-
-total++;
-
-String correctAns=rs.getString("answer");
-
-String userAns=request.getParameter("q"+i);
-
-if(userAns!=null && userAns.equals(correctAns)){
-correct++;
+// 🔥 Local fallback
+if(host == null){
+    url = "jdbc:mysql://localhost:3306/test_db";
+    user = "root";
+    pass = "spdt";
+} else {
+    url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
 }
 
-i++;
+con = DriverManager.getConnection(url, user, pass);
 
+/* FIRST QUERY : CALCULATE SCORE */
+ps = con.prepareStatement(
+    "SELECT * FROM questions WHERE test_id=? ORDER BY id LIMIT 30"
+);
+ps.setInt(1,testId);
+rs = ps.executeQuery();
+
+int i=0;
+while(rs.next()){
+    total++;
+    String correctAns = rs.getString("answer");
+    String userAns = request.getParameter("q"+i);
+
+    if(userAns!=null && userAns.equals(correctAns)){
+        correct++;
+    }
+    i++;
 }
 
 /* PERCENTAGE */
-
-int percent=0;
-
-if(total>0){
-percent=(correct*100)/total;
+int percent = 0;
+if(total > 0){
+    percent = (correct * 100) / total;
 }
 
 /* STATUS */
-
 String status="Needs Improvement";
-
-if(percent>=70){
-status="Excellent";
-}
-else if(percent>=40){
-status="Average";
-}
+if(percent >= 70) status="Excellent";
+else if(percent >= 40) status="Average";
 
 /* SECOND QUERY FOR REVIEW */
-
-ps=con.prepareStatement(
-"SELECT * FROM questions WHERE test_id=? ORDER BY id LIMIT 30"
+ps = con.prepareStatement(
+    "SELECT * FROM questions WHERE test_id=? ORDER BY id LIMIT 30"
 );
-
 ps.setInt(1,testId);
-
-rs=ps.executeQuery();
+rs = ps.executeQuery();
 
 i=0;
-
 %>
 
 <!DOCTYPE html>

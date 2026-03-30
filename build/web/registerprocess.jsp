@@ -48,10 +48,25 @@ ResultSet rs = null;
 try {
     Class.forName("com.mysql.cj.jdbc.Driver");
 
-    // ✅ Connect to `register` database
-    con = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/register","root","spdt"
-    );
+    // ENV variables (Railway)
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASSWORD");
+
+    String url;
+
+    // 🔥 Local fallback
+    if(host == null){
+        url = "jdbc:mysql://localhost:3306/register";
+        user = "root";
+        pass = "spdt";
+    } else {
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
+
+    con = DriverManager.getConnection(url, user, pass);
 
     // =====================
     // Duplicate Email Check
@@ -78,7 +93,6 @@ try {
     ps.setString(1,name);
     ps.setString(2,email);
     ps.setString(3,password);
-    
 
     int i = ps.executeUpdate();
 

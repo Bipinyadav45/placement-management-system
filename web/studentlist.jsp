@@ -8,17 +8,28 @@
 <%@ page import="java.sql.*" %>
 
 <%
-    String url = "jdbc:mysql://localhost:3306/student_db";
-    String user = "root";
-    String pass = "spdt";
+String host = System.getenv("DB_HOST");
+String port = System.getenv("DB_PORT");
+String db   = System.getenv("DB_NAME");  // env variable for online DB
+String user = System.getenv("DB_USER");
+String pass = System.getenv("DB_PASS");
 
-    Connection con = null;
-    try{
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        con = DriverManager.getConnection(url, user, pass);
-    }catch(Exception e){
-        out.println(e);
-    }
+String url;
+if(host == null){ // fallback for local
+    url = "jdbc:mysql://localhost:3306/student_db";
+    user = "root";
+    pass = "spdt";
+} else { // online DB
+    url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+}
+
+Connection con = null;
+try{
+    Class.forName("com.mysql.cj.jdbc.Driver");
+    con = DriverManager.getConnection(url, user, pass);
+}catch(Exception e){
+    out.println("DB Connection Error: " + e);
+}
 %>
 
 <!DOCTYPE html>

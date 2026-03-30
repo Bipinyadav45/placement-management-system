@@ -4,30 +4,34 @@
     Author     : defaultuser0
 --%>
 
+<%@page import="configConnection.DBConnection"%>
 <%@page contentType="text/html" pageEncoding="UTF-8"%>
 <%@ page import="java.sql.*" %>
 <%
     String company = request.getParameter("company");
-    String role = request.getParameter("role");
+String role = request.getParameter("role");
 
-    String email = "student@gmail.com"; // abhi static, baad me session se aayega
+String email = "student@gmail.com"; // session se aayega baad me
 
-    try{
-        Class.forName("com.mysql.cj.jdbc.Driver");
-        Connection con = DriverManager.getConnection(
-            "jdbc:mysql://localhost:3306/applied_db","root","spdt");
+try{
+    Class.forName("com.mysql.cj.jdbc.Driver");
 
-        PreparedStatement ps = con.prepareStatement(
-            "INSERT INTO applied_companies(student_email, company_name, role, apply_date) VALUES (?,?,?,CURDATE())"
-        );
-        ps.setString(1, email);
-        ps.setString(2, company);
-        ps.setString(3, role);
-        ps.executeUpdate();
+    // ✅ New line
+    Connection con = DBConnection.getConnection();
 
-    }catch(Exception e){
-        out.println(e);
-    }
+    PreparedStatement ps = con.prepareStatement(
+        "INSERT INTO applied_jobs (company, role, email) VALUES (?, ?, ?)"
+    );
+    ps.setString(1, company);
+    ps.setString(2, role);
+    ps.setString(3, email);
+
+    ps.executeUpdate();
+    con.close();
+
+} catch(Exception e){
+    e.printStackTrace();
+}
 %>
 
 <!DOCTYPE html>

@@ -87,9 +87,26 @@ public class AddCompanyServlet extends HttpServlet {
             Class.forName("com.mysql.cj.jdbc.Driver");
 
             // 3. DB connection
-            con = DriverManager.getConnection(
-                    "jdbc:mysql://localhost:3306/pms_db","root","spdt");
+           String host = System.getenv("DB_HOST");
 
+if (host != null) {
+    // 🌐 Railway (Online DB)
+    String port = System.getenv("DB_PORT");
+    String db = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASS");
+
+    String url = "jdbc:mysql://" + host + ":" + port + "/" + db;
+    con = DriverManager.getConnection(url, user, pass);
+
+} else {
+    // 💻 Localhost
+    String url = "jdbc:mysql://localhost:3306/pms_db";
+    String user = "root";
+    String pass = "spdt";
+
+    con = DriverManager.getConnection(url, user, pass);
+}
             // 4. SQL (cid auto-increment → not included)
             String sql = "INSERT INTO company (cname, role, package, criteria) VALUES (?,?,?,?)";
             ps = con.prepareStatement(sql);

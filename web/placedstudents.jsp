@@ -113,16 +113,35 @@ th{
         <th>Placed_date</th>
         <th>Role</th>
       </tr>
-
 <%
+Connection con = null;
+PreparedStatement ps = null;
+ResultSet rs = null;
 try{
     Class.forName("com.mysql.cj.jdbc.Driver");
-    Connection con = DriverManager.getConnection(
-        "jdbc:mysql://localhost:3306/Export_db","root","spdt");
 
-    PreparedStatement ps =
-        con.prepareStatement("SELECT * FROM placed_students");
-    ResultSet rs = ps.executeQuery();
+    // ENV variables (Railway)
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASSWORD");
+
+    String url;
+
+    // 🔥 Local fallback
+    if(host == null){
+        url = "jdbc:mysql://localhost:3306/Export_db";
+        user = "root";
+        pass = "spdt";
+    } else {
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
+
+    con = DriverManager.getConnection(url, user, pass);
+
+    ps = con.prepareStatement("SELECT * FROM placed_students");
+    rs = ps.executeQuery();
 
     while(rs.next()){
 %>
@@ -137,15 +156,19 @@ try{
       </tr>
 <%
     }
-    con.close();
 }catch(Exception e){
 %>
 <tr>
-  <td colspan="7"><%= e %></td>
+  <td colspan="7">Error: <%= e %></td>
 </tr>
 <%
+} finally {
+    try{ if(rs!=null) rs.close(); } catch(Exception e){}
+    try{ if(ps!=null) ps.close(); } catch(Exception e){}
+    try{ if(con!=null) con.close(); } catch(Exception e){}
 }
 %>
+
 
     </table>
   </div>

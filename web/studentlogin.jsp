@@ -109,45 +109,63 @@ if(request.getParameter("login") != null){
         out.println("<div class='error'>All fields are required</div>");
     } else {
 
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+
         try{
             Class.forName("com.mysql.cj.jdbc.Driver");
 
-            Connection con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/register","root","spdt");
+            // ==========================
+            // Dynamic DB connection
+            // ==========================
+            String host = System.getenv("DB_HOST");
+            String port = System.getenv("DB_PORT");
+            String db   = System.getenv("DB_NAME");
+            String user = System.getenv("DB_USER");
+            String pass = System.getenv("DB_PASS");
 
-            PreparedStatement ps = con.prepareStatement(
-                "SELECT * FROM users WHERE email=? AND password=?");
+            String url;
+            if(host == null){ // Local fallback
+                url = "jdbc:mysql://localhost:3306/register";
+                user = "root";
+                pass = "spdt";
+            } else { // Online deploy
+                url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+            }
 
+            con = DriverManager.getConnection(url, user, pass);
+
+            ps = con.prepareStatement(
+                "SELECT * FROM users WHERE email=? AND password=?"
+            );
             ps.setString(1, username);
             ps.setString(2, password);
 
-            ResultSet rs = ps.executeQuery();
+            rs = ps.executeQuery();
 
             if(rs.next()){
                 
-                // 🔥 IMPORTANT CHANGE
+                // ✅ Session setup
                 int user_id = rs.getInt("id");
-
-                // ✅ Session set (VERY IMPORTANT)
                 session.setAttribute("student_id", String.valueOf(user_id));
-
-                // (optional)
                 session.setAttribute("studentUser", username);
 
                 // ✅ Redirect
                 response.sendRedirect("myprofile.jsp");
 
-            }else{
+            } else {
                 out.println("<div class='error'>Invalid Email or Password</div>");
             }
 
-            rs.close();
-            ps.close();
-            con.close();
-
-        }catch(Exception e){
-            out.println("<div class='error'>"+e.getMessage()+"</div>");
+        } catch(Exception e){
+            out.println("<div class='error'>DB Error: " + e.getMessage() + "</div>");
+        } finally {
+            try{ if(rs!=null) rs.close(); } catch(Exception e){}
+            try{ if(ps!=null) ps.close(); } catch(Exception e){}
+            try{ if(con!=null) con.close(); } catch(Exception e){}
         }
+
     }
 }
 %>

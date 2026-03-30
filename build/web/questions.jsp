@@ -8,7 +8,6 @@
 
 <%@page import="java.sql.*"%>
 <%
-
 Connection con = null;
 PreparedStatement ps = null;
 ResultSet rs = null;
@@ -16,22 +15,32 @@ ResultSet rs = null;
 int testId = Integer.parseInt(request.getParameter("test_Id"));
 
 try{
+    Class.forName("com.mysql.cj.jdbc.Driver");
 
-Class.forName("com.mysql.cj.jdbc.Driver");
+    // ENV variables (Railway)
+    String host = System.getenv("DB_HOST");
+    String port = System.getenv("DB_PORT");
+    String db   = System.getenv("DB_NAME");
+    String user = System.getenv("DB_USER");
+    String pass = System.getenv("DB_PASSWORD");
 
-con = DriverManager.getConnection(
-"jdbc:mysql://localhost:3306/test_db",
-"root",
-"spdt"
-);
+    String url;
 
-ps = con.prepareStatement(
-"SELECT * FROM questions WHERE test_id=? LIMIT 30"
-);
+    // 🔥 Local fallback
+    if(host == null){
+        url = "jdbc:mysql://localhost:3306/test_db";
+        user = "root";
+        pass = "spdt";
+    } else {
+        url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
+    }
 
-ps.setInt(1,testId);
+    con = DriverManager.getConnection(url, user, pass);
 
-rs = ps.executeQuery();
+    ps = con.prepareStatement("SELECT * FROM questions WHERE test_id=? LIMIT 30");
+    ps.setInt(1,testId);
+
+    rs = ps.executeQuery();
 
 %>
 

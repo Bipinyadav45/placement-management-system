@@ -8,42 +8,62 @@
 <%@page import="java.sql.*"%>
 
 <%
-    String msg = "";
+String msg = "";
 
-    if(request.getParameter("login") != null){
-        String userid = request.getParameter("userid");
-        String password = request.getParameter("password");
+if(request.getParameter("login") != null){
+    String userid = request.getParameter("userid");
+    String password = request.getParameter("password");
 
-        try{
-            Class.forName("com.mysql.cj.jdbc.Driver");
+    Connection con = null;
+    PreparedStatement ps = null;
+    ResultSet rs = null;
 
-            Connection con = DriverManager.getConnection(
-                "jdbc:mysql://localhost:3306/recruiter_db",
-                "root",
-                "spdt"
-            );
+    try{
+        Class.forName("com.mysql.cj.jdbc.Driver");
 
-            PreparedStatement ps = con.prepareStatement(
-                "SELECT * FROM recruiter WHERE recruiter_id=? AND password=?"
-            );
+        // ENV variables (Railway)
+        String host = System.getenv("DB_HOST");
+        String port = System.getenv("DB_PORT");
+        String db   = System.getenv("DB_NAME");
+        String user = System.getenv("DB_USER");
+        String pass = System.getenv("DB_PASSWORD");
 
-            ps.setString(1, userid);
-            ps.setString(2, password);
+        String url;
 
-            ResultSet rs = ps.executeQuery();
-
-            if(rs.next()){
-                session.setAttribute("recruiterId", userid);
-                response.sendRedirect("recruiter_dashboard.jsp");
-            }else{
-                msg = "Invalid User ID or Password";
-            }
-
-            con.close();
-        }catch(Exception e){
-            msg = "Server Error : " + e.getMessage();
+        // 🔥 Local fallback
+        if(host == null){
+            url = "jdbc:mysql://localhost:3306/recruiter_db";
+            user = "root";
+            pass = "spdt";
+        } else {
+            url = "jdbc:mysql://" + host + ":" + port + "/" + db + "?useSSL=false&allowPublicKeyRetrieval=true";
         }
+
+        con = DriverManager.getConnection(url, user, pass);
+
+        ps = con.prepareStatement(
+            "SELECT * FROM recruiter WHERE recruiter_id=? AND password=?"
+        );
+        ps.setString(1, userid);
+        ps.setString(2, password);
+
+        rs = ps.executeQuery();
+
+        if(rs.next()){
+            session.setAttribute("recruiterId", userid);
+            response.sendRedirect("recruiter_dashboard.jsp");
+        }else{
+            msg = "Invalid User ID or Password";
+        }
+
+    }catch(Exception e){
+        msg = "Server Error : " + e.getMessage();
+    } finally {
+        try{ if(rs != null) rs.close(); } catch(Exception e){}
+        try{ if(ps != null) ps.close(); } catch(Exception e){}
+        try{ if(con != null) con.close(); } catch(Exception e){}
     }
+}
 %>
 
 <!DOCTYPE html>
