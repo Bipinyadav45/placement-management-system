@@ -1,0 +1,14 @@
+# Environment variables (contains secrets)
+.env
+
+# NetBeans build artifacts (keep dist/pms.war for Docker build)
+build/
+nbproject/private/
+
+# IDE files
+*.iml
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
